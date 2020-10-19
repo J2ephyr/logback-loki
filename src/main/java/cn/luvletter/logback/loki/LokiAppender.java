@@ -31,19 +31,19 @@ public class LokiAppender<E> extends UnsynchronizedAppenderBase<E> {
 
     protected Encoder<E> encoder;
 
+    protected HttpRequest httpRequest;
+
+    protected volatile List<LogItem> logCache;
+
     private static final String PUSH_PATH = "/loki/api/v1/push";
 
     private static final long DELAY = TimeUnit.SECONDS.toMillis(3);
 
     private static final long MAX_CACHE = 5;
 
-    private final ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
-
-    private HttpRequest httpRequest;
-
-    private volatile List<LogItem> logCache;
-
     private ScheduledFuture<?> senderFuture;
+
+    private final ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     @Override
     public void start() {

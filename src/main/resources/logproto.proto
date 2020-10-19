@@ -1,0 +1,27 @@
+//protoc -I=src/main/resources --java_out=src/main/java logproto.proto
+syntax = "proto3";
+
+package cn.luvletter.logback.loki.proto;
+
+import "google/protobuf/timestamp.proto";
+
+service Pusher {
+    rpc Push(PushRequest) returns (PushResponse) {};
+}
+
+message PushRequest {
+    repeated StreamAdapter streams = 1;
+}
+
+message PushResponse {
+}
+
+message StreamAdapter {
+    string labels = 1;
+    repeated EntryAdapter entries = 2;
+}
+
+message EntryAdapter {
+    google.protobuf.Timestamp timestamp = 1;
+    string line = 2;
+}
