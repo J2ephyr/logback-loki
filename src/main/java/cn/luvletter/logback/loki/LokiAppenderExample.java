@@ -17,14 +17,13 @@ public class LokiAppenderExample {
         MDC.put("MDC_KEY","MDC_VALUE");
         MDC.put("THREAD_ID", String.valueOf(Thread.currentThread().getId()));
 
-        LOGGER.trace("trace log");
         LOGGER.debug("debug log");
         LOGGER.info("info log");
         LOGGER.warn("warn log");
+        LOGGER.warn("warn log");
         LOGGER.error("error log");
-        LOGGER.error("error log");
-        LOGGER.error("error log");
-        LOGGER.error("error log");
+        LOGGER.error("error log1");
+        LOGGER.error("error log2");
     }
 
 }

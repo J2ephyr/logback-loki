@@ -33,19 +33,17 @@ public class LokiAppender<E> extends UnsynchronizedAppenderBase<E> {
 
     private static final String PUSH_PATH = "/loki/api/v1/push";
 
-    private static final long DELAY = TimeUnit.SECONDS.toMillis(1);
+    private static final long DELAY = TimeUnit.SECONDS.toMillis(3);
 
     private static final long MAX_CACHE = 5;
 
-    private ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    private final ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     private HttpRequest httpRequest;
 
-    private List<LogItem> logCache;
+    private volatile List<LogItem> logCache;
 
     private ScheduledFuture<?> senderFuture;
-
-    private final Sender sender = new Sender();
 
     @Override
     public void start() {
@@ -76,25 +74,25 @@ public class LokiAppender<E> extends UnsynchronizedAppenderBase<E> {
     }
 
     private void send() {
+        if (senderFuture != null && !senderFuture.isCancelled()) {
+            senderFuture.cancel(true);
+        }
         int cacheSize = logCache.size();
         if (cacheSize == 0) {
             return;
-        }
-        if (senderFuture != null && !senderFuture.isCancelled()) {
-            senderFuture.cancel(true);
         }
         LogItem last = logCache.get(cacheSize - 1);
         if (System.currentTimeMillis() - last.getNanoseconds() > DELAY || cacheSize > MAX_CACHE) {
             this.doSend();
         } else {
             if (senderFuture == null || senderFuture.isCancelled() || senderFuture.isDone()) {
-                senderFuture = executor.schedule(new Sender(), 5L, TimeUnit.SECONDS);
+                senderFuture = executor.schedule(this::doSend, 5L, TimeUnit.SECONDS);
             }
         }
-        System.out.println("senderFuture is cancelled:" + senderFuture.isCancelled());
+        addInfo(StrUtil.format("senderFuture is cancelled:{}", senderFuture.isCancelled()));
     }
 
-    protected void doSend() {
+    protected synchronized void doSend() {
         LokiStream.Stream stream = LokiStream.buildStream(label, value);
         logCache.forEach(stream::appendLine);
         LokiStream lokiStream = LokiStream.build().add(stream);
@@ -102,18 +100,9 @@ public class LokiAppender<E> extends UnsynchronizedAppenderBase<E> {
         if (!response.isOk()) {
             addError(StrUtil.format("Failed request loki. Response: {}", response));
         } else {
+            addInfo(StrUtil.format("日志发送成功，数量：{}", logCache.size()));
             logCache.clear();
         }
-    }
-
-    private class Sender implements Runnable {
-
-        @Override
-        public void run() {
-            System.out.println("执行任务了");
-            doSend();
-        }
-
     }
 
     public String getLokiHost() {
