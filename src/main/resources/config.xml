@@ -1,0 +1,3 @@
+<included>
+    <property name="lokiHost" value="http://lokiHost:3100"/>
+</included>

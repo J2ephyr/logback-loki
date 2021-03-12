@@ -1,4 +1,5 @@
-<configuration>
+<configuration debug="true">
+    <include resource="config.xml"/>
 
     <appender name="INFO_LOKI" class="cn.luvletter.logback.loki.LokiAppender">
         <!--日志文件输出格式-->
@@ -6,25 +7,20 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
             <charset>UTF-8</charset> <!-- 此处设置字符集 -->
         </encoder>
-        <lokiHost>http://192.168.2.142:3100</lokiHost>
+        <lokiHost>${lokiHost}</lokiHost>
         <label>EXAMPLE</label>
         <value>INFO</value>
     </appender>
 
-    <appender name="ERROR_LOKI" class="cn.luvletter.logback.loki.LokiAppender">
+    <appender name="DEBUG_LOKI" class="cn.luvletter.logback.loki.LokiProtoAppender">
         <!--日志文件输出格式-->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
             <charset>UTF-8</charset> <!-- 此处设置字符集 -->
         </encoder>
-        <lokiHost>http://192.168.2.142:3100</lokiHost>
+        <lokiHost>${lokiHost}</lokiHost>
         <label>EXAMPLE</label>
-        <value>ERROR</value>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
+        <value>DEBUG</value>
     </appender>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -37,5 +33,6 @@
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="INFO_LOKI"/>
+<!--        <appender-ref ref="DEBUG_LOKI"/>-->
     </root>
 </configuration>
